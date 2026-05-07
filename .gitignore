@@ -46,3 +46,9 @@ bun.lock
 career-dashboard
 package-lock.json
 .aider*
+
+# Personal study folder — not part of career-ops
+Leetcode/
+
+# Compiled binary
+career-ops-dashboard
