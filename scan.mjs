@@ -134,6 +134,21 @@ function buildTitleFilter(titleFilter) {
   };
 }
 
+// ── Location filter ──────────────────────────────────────────────────
+
+function buildLocationFilter(locationFilter) {
+  if (!locationFilter) return () => true;
+  const requireAny = (locationFilter.require_any || []).map(k => k.toLowerCase());
+  const allowEmpty = locationFilter.allow_empty !== false;
+
+  return (location) => {
+    if (!location || location.trim() === '') return allowEmpty;
+    const lower = location.toLowerCase();
+    if (requireAny.length === 0) return true;
+    return requireAny.some(k => lower.includes(k));
+  };
+}
+
 // ── Dedup ───────────────────────────────────────────────────────────
 
 function loadSeenUrls() {
@@ -264,6 +279,7 @@ async function main() {
   const config = parseYaml(readFileSync(PORTALS_PATH, 'utf-8'));
   const companies = config.tracked_companies || [];
   const titleFilter = buildTitleFilter(config.title_filter);
+  const locationFilter = buildLocationFilter(config.location_filter);
 
   // 2. Filter to enabled companies with detectable APIs
   const targets = companies
@@ -298,6 +314,10 @@ async function main() {
 
       for (const job of jobs) {
         if (!titleFilter(job.title)) {
+          totalFiltered++;
+          continue;
+        }
+        if (!locationFilter(job.location)) {
           totalFiltered++;
           continue;
         }
